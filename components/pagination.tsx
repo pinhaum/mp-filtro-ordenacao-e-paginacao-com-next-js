@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Pagination as PaginationComponent,
   PaginationContent,
@@ -6,13 +8,98 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from '@/components/ui/pagination';
+} from "@/components/ui/pagination";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-export default function Pagination() {
+type PaginationProps = {
+  links: {
+    url: string;
+    label: string;
+    active: boolean;
+    id: number;
+  }[];
+  lastPage: number;
+};
+
+export default function Pagination({ links, lastPage }: PaginationProps) {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const { replace } = useRouter();
+
+  function handleClickPage(pageNumber: number) {
+    const params = new URLSearchParams(searchParams);
+
+    if (pageNumber > 1) {
+      if (pageNumber > lastPage) {
+        params.set("page", lastPage.toString());
+      } else params.set("page", pageNumber.toString());
+    } else {
+      params.delete("page");
+    }
+
+    replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }
+
   return (
     <PaginationComponent>
       <PaginationContent>
-        <PaginationItem>
+        <PaginationItem
+          className={`${
+            links[0].url
+              ? "cursor-pointer"
+              : "cursor-auto text-slate-300 disabled:pointer-events-none disabled:cursor-default"
+          }`}
+          onClick={() =>
+            handleClickPage(Number(searchParams.get("page") || 1) - 1)
+          }
+        >
+          <PaginationPrevious />
+        </PaginationItem>
+
+        {links.map((link) => {
+          if (
+            link.label.includes("Anterior") ||
+            link.label.includes("Próximo")
+          ) {
+            return null;
+          }
+
+          if (link.label === "...") {
+            return (
+              <PaginationItem key={link.id} className="hidden md:inline-flex">
+                <PaginationEllipsis />
+              </PaginationItem>
+            );
+          }
+          return (
+            <PaginationItem
+              key={link.id}
+              className="hidden md:inline-flex cursor-pointer disabled:pointer-events-none disabled:cursor-default"
+            >
+              <PaginationLink
+                isActive={link.active}
+                onClick={() => handleClickPage(Number(link.label))}
+              >
+                {link.label}
+              </PaginationLink>
+            </PaginationItem>
+          );
+        })}
+
+        <PaginationItem
+          className={`${
+            links[links.length - 1].url
+              ? "cursor-pointer"
+              : "cursor-auto text-slate-300"
+          }`}
+          onClick={() =>
+            handleClickPage(Number(searchParams.get("page") || 1) + 1)
+          }
+        >
+          <PaginationNext />
+        </PaginationItem>
+
+        {/* <PaginationItem>
           <PaginationPrevious />
         </PaginationItem>
         <PaginationItem className="hidden md:inline-flex">
@@ -38,7 +125,7 @@ export default function Pagination() {
         </PaginationItem>
         <PaginationItem>
           <PaginationNext />
-        </PaginationItem>
+        </PaginationItem> */}
       </PaginationContent>
     </PaginationComponent>
   );
