@@ -11,7 +11,7 @@ export default function SearchInput() {
   const { replace } = useRouter();
 
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const params = new URLSearchParams();
+    const params = new URLSearchParams(searchParams);
 
     const searchString = event.currentTarget.value;
 
